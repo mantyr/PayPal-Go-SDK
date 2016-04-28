@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/logpacker/PayPal-Go-SDK.svg?branch=master)](https://travis-ci.org/logpacker/PayPal-Go-SDK)
 [![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/logpacker/PayPal-Go-SDK)
+[![Chat at https://gitter.im/logpacker/PayPal-Go-SDK](https://img.shields.io/badge/gitter-dev_chat-46bc99.svg)](https://gitter.im/logpacker/PayPal-Go-SDK?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 #### GO client for PayPal REST API
 
@@ -19,6 +20,9 @@
  * POST /v1/payments/orders/**ID**/authorize
  * POST /v1/payments/orders/**ID**/capture
  * POST /v1/payments/orders/**ID**/do-void
+ * POST /v1/identity/openidconnect/tokenservice
+ * GET /v1/identity/openidconnect/userinfo/?schema=**SCHEMA**
+ * POST /v1/payments/payouts?sync_mode=true
 
 #### Missing endpoints
 It is possible that some endpoints are missing in this SDK Client, but you can use built-in **paypalsdk** functions to perform a request: **NewClient -> NewRequest -> SendWithAuth**
@@ -187,6 +191,45 @@ capture, err := c.CaptureOrder(orderID, &paypalsdk.Amount{Total: "7.00", Currenc
 
 ```go
 order, err := c.VoidOrder(orderID)
+```
+
+#### Identity
+
+```go
+// Retreive tolen by authorization code
+token, err := c.GrantNewAccessTokenFromAuthCode("<Authorization-Code>", "http://example.com/myapp/return.php")
+// ... or by refresh token
+token, err := c.GrantNewAccessTokenFromRefreshToken("<Refresh-Token>")
+```
+
+#### Retreive user information
+
+```go
+userInfo, err := c.GetUserInfo("openid")
+```
+
+#### Create single payout to email
+
+```go
+payout := paypalsdk.Payout{
+    SenderBatchHeader: &paypalsdk.SenderBatchHeader{
+        EmailSubject: "Subject will be displayed on PayPal",
+    },
+    Items: []paypalsdk.PayoutItem{
+        paypalsdk.PayoutItem{
+            RecipientType: "EMAIL",
+            Receiver:      "single-email-payout@mail.com",
+            Amount: &paypalsdk.AmountPayout{
+                Value:    "15.11",
+                Currency: "USD",
+            },
+            Note:         "Optional note",
+            SenderItemID: "Optional Item ID",
+        },
+    },
+}
+
+payoutResp, err := c.CreateSinglePayout(payout)
 ```
 
 #### How to Contribute

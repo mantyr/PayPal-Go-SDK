@@ -32,6 +32,12 @@ type (
 		Total    string `json:"total"`
 	}
 
+	// AmountPayout https://developer.paypal.com/docs/integration/direct/create-single-payout/
+	AmountPayout struct {
+		Currency string `json:"currency"`
+		Value    string `json:"value"`
+	}
+
 	// Authorization rhttps://developer.paypal.com/webapps/developer/docs/api/#authorization-object
 	Authorization struct {
 		Amount                    *Amount    `json:"amount,omitempty"`
@@ -45,6 +51,17 @@ type (
 		ClearingTime              string     `json:"clearing_time,omitempty"`
 		ProtectionEligibility     string     `json:"protection_eligibility,omitempty"`
 		ProtectionEligibilityType string     `json:"protection_eligibility_type,omitempty"`
+	}
+
+	// BatchHeader https://developer.paypal.com/docs/integration/direct/create-single-payout/
+	BatchHeader struct {
+		Amount            *AmountPayout      `json:"amount,omitempty"`
+		Fees              *AmountPayout      `json:"fees,omitempty"`
+		PayoutBatchID     string             `json:"payout_batch_id,omitempty"`
+		BatchStatus       string             `json:"batch_status,omitempty"`
+		TimeCreated       *time.Time         `json:"time_created,omitempty"`
+		TimeCompleted     *time.Time         `json:"time_completed,omitempty"`
+		SenderBatchHeader *SenderBatchHeader `json:"sender_batch_header,omitempty"`
 	}
 
 	// Capture https://developer.paypal.com/webapps/developer/docs/api/#capture-object
@@ -149,9 +166,9 @@ type (
 	// Links https://developer.paypal.com/webapps/developer/docs/api/#itemlist-object
 	Links struct {
 		Href    string `json:"href"`
-		Rel     string `json:"rel"`
-		Method  string `json:"method"`
-		Enctype string `json:"enctype"`
+		Rel     string `json:"rel,omitempty"`
+		Method  string `json:"method,omitempty"`
+		Enctype string `json:"enctype,omitempty"`
 	}
 
 	// Order https://developer.paypal.com/webapps/developer/docs/api/#order-object
@@ -211,6 +228,40 @@ type (
 		Links []PaymentLink `json:"links"`
 	}
 
+	// Payout https://developer.paypal.com/docs/integration/direct/create-single-payout/
+	Payout struct {
+		SenderBatchHeader *SenderBatchHeader `json:"sender_batch_header"`
+		Items             []PayoutItem       `json:"items"`
+	}
+
+	// PayoutItem https://developer.paypal.com/docs/integration/direct/create-single-payout/
+	PayoutItem struct {
+		RecipientType string        `json:"recipient_type"`
+		Receiver      string        `json:"receiver"`
+		Amount        *AmountPayout `json:"amount"`
+		Note          string        `json:"note,omitempty"`
+		SenderItemID  string        `json:"sender_item_id,omitempty"`
+	}
+
+	// PayoutItemResponse https://developer.paypal.com/docs/integration/direct/create-single-payout/
+	PayoutItemResponse struct {
+		PayoutItemID      string        `json:"payout_item_id"`
+		TransactionID     string        `json:"transaction_id"`
+		TransactionStatus string        `json:"transaction_status"`
+		PayoutBatchID     string        `json:"payout_batch_id,omitempty"`
+		PayoutItemFee     *AmountPayout `json:"payout_item_fee,omitempty"`
+		PayoutItem        *PayoutItem   `json:"payout_item"`
+		TimeProcessed     *time.Time    `json:"time_processed,omitempty"`
+		Links             []Links       `json:"links"`
+	}
+
+	// PayoutResponse https://developer.paypal.com/docs/integration/direct/create-single-payout/
+	PayoutResponse struct {
+		BatchHeader *BatchHeader         `json:"batch_header"`
+		Items       []PayoutItemResponse `json:"items"`
+		Links       []Links              `json:"links"`
+	}
+
 	// RedirectURLs https://developer.paypal.com/webapps/developer/docs/api/#redirecturls-object
 	RedirectURLs struct {
 		ReturnURL string `json:"return_url,omitempty"`
@@ -246,6 +297,11 @@ type (
 		Links                     []Links    `json:"links,omitempty"`
 	}
 
+	// SenderBatchHeader https://developer.paypal.com/docs/integration/direct/create-single-payout/
+	SenderBatchHeader struct {
+		EmailSubject string `json:"email_subject"`
+	}
+
 	// ShippingAddress https://developer.paypal.com/webapps/developer/docs/api/#shippingaddredd-object
 	ShippingAddress struct {
 		RecipientName string `json:"recipient_name,omitempty"`
@@ -275,9 +331,29 @@ type (
 		Custom         string    `json:"custom,omitempty"`
 		SoftDescriptor string    `json:"soft_descriptor,omitempty"`
 	}
+
+	// UserInfo https://developer.paypal.com/webapps/developer/docs/api/#userinfo-object
+	UserInfo struct {
+		ID              string   `json:"user_id"`
+		Name            string   `json:"name"`
+		GivenName       string   `json:"given_name"`
+		FamilyName      string   `json:"family_name"`
+		Email           string   `json:"email"`
+		Verified        bool     `json:"verified,omitempty"`
+		Gender          string   `json:"gender,omitempty"`
+		BirthDate       string   `json:"birthdate,omitempty"`
+		ZoneInfo        string   `json:"zoneinfo,omitempty"`
+		Locale          string   `json:"locale,omitempty"`
+		Phone           string   `json:"phone_number,omitempty"`
+		Address         *Address `json:"address,omitempty"`
+		VerifiedAccount bool     `json:"verified_account,omitempty"`
+		AccountType     string   `json:"account_type,omitempty"`
+		AgeRange        string   `json:"age_range,omitempty"`
+		PayerID         string   `json:"payer_id,omitempty"`
+	}
 )
 
 // Error method implementation for ErrorResponse struct
 func (r *ErrorResponse) Error() string {
-	return fmt.Sprintf("%v %v: %d %v\nDetails: %v", r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.Message, r.Details)
+	return fmt.Sprintf("%v %v: %d %v", r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.Message)
 }
